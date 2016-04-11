@@ -150,22 +150,26 @@ protected
     @casted_keys.delete *keys.map(&:to_s)
   end
 
-  def cast!(key)
+  def cast!(key, do_raise = true)
     key = convert_key(key)
     return unless key?(key)
-    return regular_reader(key) if casted?(key)
-    raise SystemStackError, "already casting #{key}" if casting?(key)
 
-    casting! key
+    value = regular_reader(key)
+    return value if casted?(key)
 
-    value = if @cast_proc.arity == 1
-      @cast_proc.call regular_reader(key)
-    elsif @cast_proc.arity == 2
-      @cast_proc.call self, regular_reader(key)
-    elsif @cast_proc.arity == 3
-      @cast_proc.call self, key, regular_reader(key)
+    if casting?(key)
+      raise SystemStackError, "already casting #{key}" if do_raise
     else
-      @cast_proc.call
+      casting! key
+      value = if @cast_proc.arity == 1
+        @cast_proc.call value
+      elsif @cast_proc.arity == 2
+        @cast_proc.call self, value
+      elsif @cast_proc.arity == 3
+        @cast_proc.call self, key, value
+      else
+        @cast_proc.call
+      end
     end
 
     value = regular_writer(key, value)
@@ -178,7 +182,7 @@ protected
   end
 
   def cast_all!
-    keys.each{|key| cast! key}
+    keys.each{|key| cast!(key, false)}
   end
 
   def convert_key(key)
