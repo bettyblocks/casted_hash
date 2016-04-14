@@ -23,6 +23,15 @@ class CastedHash < Hash
 
   alias_method :regular_reader, :[] unless method_defined?(:regular_reader)
 
+  def transform_keys
+    return enum_for(:transform_keys) unless block_given?
+    result = dup
+    each_key do |key|
+      result[yield(key)] = regular_reader(key)
+    end
+    result
+  end
+
   def [](key)
     cast! key
   end

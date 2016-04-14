@@ -2,6 +2,23 @@ require 'helper'
 
 describe CastedHash do
 
+  it "is able to transform keys without implicit casting" do
+    hash = CastedHash.new({:foo => 1, :bar => 1}, lambda { |x| x + 1 })
+    new_hash = hash.transform_keys do |key|
+      key.to_s
+    end
+
+    assert_equal 2, hash[:bar]
+    assert hash.casted?(:bar)
+    assert !hash.casted?(:foo)
+
+    assert_equal 2, new_hash[:bar]
+    assert new_hash.casted?(:bar)
+    assert !new_hash.casted?(:foo)
+    assert_equal 2, new_hash[:foo]
+    assert new_hash.casted?(:foo)
+  end
+
   it "is able to define a cast method" do
     hash = CastedHash.new({:foo => 1}, lambda { |x| x.to_s })
 
