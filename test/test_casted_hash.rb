@@ -15,11 +15,6 @@ describe CastedHash do
     assert_equal "3", hash[:bar]
   end
 
-  it "can use casted_hash in cast method" do
-    @hash = CastedHash.new({:a => 1}, lambda {|x| @hash.casted_hash; 2 })
-    assert_equal 2, @hash[:a]
-  end
-
   it "does not loop when refering to itself" do
     @hash = CastedHash.new({:a => 1}, lambda {|x| @hash[:a] + 1 })
     error = assert_raises(SystemStackError) do
