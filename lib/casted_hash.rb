@@ -47,13 +47,16 @@ class CastedHash < Hash
     end
   end
 
-  alias_method :regular_writer, :[]= unless method_defined?(:regular_writer)
+  alias_method :original_regular_writer, :[]=
   alias_method :regular_update, :update unless method_defined?(:regular_update)
 
+  def regular_writer(key, value)
+    original_regular_writer(convert_key(key), value)
+  end
+
   def []=(key, value)
-    key = convert_key(key)
-    uncast! key
-    regular_writer(key, value)
+    uncast! convert_key(key)
+    regular_writer key, value
   end
 
   alias_method :store, :[]=
@@ -66,14 +69,12 @@ class CastedHash < Hash
     return self if other_hash.empty?
 
     other_hash.each_pair do |key, value|
-      converted_key = convert_key(key)
-
-      regular_writer converted_key, value
+      regular_writer key, value
 
       if other_hash.is_a?(CastedHash) && other_hash.casted?(key)
         casted!(key)
       elsif casted?(key)
-        uncast!(converted_key)
+        uncast!(convert_key(key))
       end
     end
 
