@@ -33,14 +33,15 @@ class CastedHash < Hash
   end
 
   def [](key)
-    cast! key
+    cast! convert_key(key)
   end
 
   def fetch(key, *extras)
+    key = convert_key(key)
     value = cast!(key)
 
     if value.nil?
-      super(convert_key(key), *extras)
+      super(key, *extras)
     else
       value
     end
@@ -50,8 +51,9 @@ class CastedHash < Hash
   alias_method :regular_update, :update unless method_defined?(:regular_update)
 
   def []=(key, value)
+    key = convert_key(key)
     uncast! key
-    regular_writer(convert_key(key), value)
+    regular_writer(key, value)
   end
 
   alias_method :store, :[]=
@@ -119,11 +121,11 @@ class CastedHash < Hash
   end
 
   def casted?(key)
-    @casted_keys.include?(key.to_s)
+    @casted_keys.include?(convert_key(key))
   end
 
   def casting?(key)
-    @casting_keys.include?(key.to_s)
+    @casting_keys.include?(convert_key(key))
   end
 
   def to_hash
@@ -143,14 +145,14 @@ class CastedHash < Hash
   end
 
   def casted!(*keys)
-    keys.map(&:to_s).each do |key|
-      @casted_keys << key if key?(key)
+    keys.each do |key|
+      @casted_keys << convert_key(key) if key?(key)
     end
   end
 
   def casting!(*keys)
-    keys.map(&:to_s).each do |key|
-      @casting_keys << key if key?(key)
+    keys.each do |key|
+      @casting_keys << convert_key(key) if key?(key)
     end
   end
 
@@ -161,7 +163,6 @@ protected
   end
 
   def cast!(key)
-    key = convert_key(key)
     return unless key?(key)
     return regular_reader(key) if casted?(key)
     raise SystemStackError, "already casting #{key}" if casting?(key)
@@ -184,7 +185,7 @@ protected
 
     value
   ensure
-    @casting_keys.delete convert_key(key)
+    @casting_keys.delete key
   end
 
   def cast_all!
