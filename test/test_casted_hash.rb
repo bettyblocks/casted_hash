@@ -282,13 +282,4 @@ describe CastedHash do
     assert_equal 2, hash[:b]
     assert_equal 4, hash[:c]
   end
-
-  it "always uses the regular_writer method when merging" do
-    hash = CastedHash.new({}, lambda {|x| x + 1})
-    hash.expects(:regular_writer).twice
-    hash.merge!(:a => 1, :b => 2)
-
-    hash.expects(:regular_writer)
-    hash.merge!(CastedHash.new({:a => 1}, lambda {|x| x + 1}))
-  end
 end

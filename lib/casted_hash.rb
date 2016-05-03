@@ -65,19 +65,20 @@ class CastedHash < Hash
   def update(other_hash)
     return self if other_hash.empty?
 
-    other_hash.each_pair do |key, value|
-      converted_key = convert_key(key)
-
-      regular_writer converted_key, value
-
-      if other_hash.is_a?(CastedHash) && other_hash.casted?(key)
-        casted!(key)
-      elsif casted?(key)
-        uncast!(converted_key)
+    if other_hash.is_a?(CastedHash)
+      super(other_hash).tap do
+        other_hash.keys.each do |key|
+          if other_hash.casted?(key)
+            casted!(key)
+          elsif casted?(key)
+            uncast!(key)
+          end
+        end
       end
+    else
+      other_hash.each_pair { |key, value| self[key] = value }
+      self
     end
-
-    self
   end
 
   alias_method :merge!, :update
