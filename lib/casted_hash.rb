@@ -98,8 +98,9 @@ class CastedHash < Hash
   end
 
   def delete(key)
+    key = convert_key(key)
     uncast! key
-    super(convert_key(key))
+    super(key)
   end
 
   def values
@@ -156,7 +157,7 @@ class CastedHash < Hash
 protected
 
   def uncast!(*keys)
-    @casted_keys.delete *keys.map(&:to_s)
+    @casted_keys.delete *keys
   end
 
   def cast!(key)

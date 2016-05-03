@@ -99,8 +99,10 @@ describe CastedHash do
 
   it "deletes values" do
     hash = CastedHash.new({:a => 1, :b => 2}, lambda {|x| x + 10 })
+    assert_equal 12, hash[:b]
     hash.delete(:b)
     assert_equal({"a" => 11}, hash.casted_hash)
+    assert !hash.casted?(:b)
   end
 
   describe "merge" do
