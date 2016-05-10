@@ -8,9 +8,9 @@ class CastedHash < Hash
     @casting_keys = []
 
     if constructor.is_a?(CastedHash)
-      super()
       @casted_keys = constructor.instance_variable_get(:@casted_keys).dup
-      regular_update(constructor)
+      super()
+      update(constructor)
     elsif constructor.is_a?(Hash)
       @casted_keys = []
       super()
@@ -48,7 +48,6 @@ class CastedHash < Hash
   end
 
   alias_method :regular_writer, :[]= unless method_defined?(:regular_writer)
-  alias_method :regular_update, :update unless method_defined?(:regular_update)
 
   def []=(key, value)
     key = convert_key(key)
