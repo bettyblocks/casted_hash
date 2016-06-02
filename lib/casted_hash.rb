@@ -94,7 +94,11 @@ class CastedHash < Hash
   end
 
   def dup
-    self.class.new(self, @cast_proc)
+    duplicate = super
+    instance_variables.each do |instance_variable|
+      duplicate.instance_variable_set(instance_variable, instance_variable_get(instance_variable).dup)
+    end
+    duplicate
   end
 
   def delete(key)
