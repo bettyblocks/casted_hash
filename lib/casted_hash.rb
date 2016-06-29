@@ -70,7 +70,7 @@ class CastedHash < Hash
       regular_writer converted_key, value
 
       if other_hash.is_a?(CastedHash) && other_hash.casted?(key)
-        casted!(key)
+        casted!(key, true)
       elsif casted?(key)
         uncast!(converted_key)
       end
@@ -81,8 +81,9 @@ class CastedHash < Hash
 
   alias_method :merge!, :update
 
-  def key?(key)
-    super(convert_key(key))
+  def key?(key, converted = false)
+    key = convert_key(key) unless converted
+    super(key)
   end
 
   alias_method :include?, :key?
@@ -122,12 +123,9 @@ class CastedHash < Hash
     self
   end
 
-  def casted?(key)
-    @casted_keys.include?(convert_key(key))
-  end
-
-  def casting?(key)
-    @casting_keys.include?(convert_key(key))
+  def casted?(key, converted = false)
+    key = convert_key(key) unless converted
+    @casted_keys.include?(key)
   end
 
   def to_hash
@@ -146,15 +144,11 @@ class CastedHash < Hash
     end
   end
 
-  def casted!(*keys)
+  def casted!(keys, converted = false)
+    keys = [keys] unless keys.is_a?(Array)
     keys.each do |key|
-      @casted_keys << convert_key(key) if key?(key)
-    end
-  end
-
-  def casting!(*keys)
-    keys.each do |key|
-      @casting_keys << convert_key(key) if key?(key)
+      key = convert_key(key) unless converted
+      @casted_keys << key if key?(key, converted)
     end
   end
 
@@ -165,8 +159,8 @@ protected
   end
 
   def cast!(key)
-    return unless key?(key)
-    return regular_reader(key) if casted?(key)
+    return unless key?(key, true)
+    return regular_reader(key) if casted?(key, true)
     raise SystemStackError, "already casting #{key}" if casting?(key)
 
     casting! key
@@ -183,11 +177,19 @@ protected
 
     value = regular_writer(key, value)
 
-    casted! key
+    casted! key, true
 
     value
   ensure
     @casting_keys.delete key
+  end
+
+  def casting!(key)
+    @casting_keys << key
+  end
+
+  def casting?(key)
+    @casting_keys.include?(key)
   end
 
   def cast_all!

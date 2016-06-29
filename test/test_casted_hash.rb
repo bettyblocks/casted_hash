@@ -44,16 +44,6 @@ describe CastedHash do
     assert_equal ["a", "b"], hash.instance_variable_get(:@casted_keys).to_a
   end
 
-  it "does not mark key multiple times as casting" do
-    hash = CastedHash.new({:a => 1, :b => 2}, lambda {|x| x + 10 })
-    assert_equal [], hash.instance_variable_get(:@casting_keys).to_a
-    hash.casting! :a
-    hash.casting! :b
-    hash.casting! :b
-    hash.casting! :c
-    assert_equal ["a", "b"], hash.instance_variable_get(:@casting_keys).to_a
-  end
-
   it "does not loop when refering to itself" do
     @hash = CastedHash.new({:a => 1}, lambda {|x| @hash[:a] + 1 })
     error = assert_raises(SystemStackError) do
@@ -62,7 +52,7 @@ describe CastedHash do
     assert_equal "already casting a", error.message
     assert_empty @hash.casted
     assert !@hash.casted?(:a)
-    assert !@hash.casting?(:a)
+    assert_equal [], @hash.instance_variable_get(:@casting_keys).to_a
   end
 
   it "can check size without casting" do
@@ -299,7 +289,7 @@ describe CastedHash do
 
   it "allows bypassing of casting" do
     hash = CastedHash.new({:a => 1, :b => 2, :c => 3}, lambda {|x|x + 1})
-    hash.casted! "a", :b
+    hash.casted! ["a", :b]
     assert_equal 1, hash[:a]
     assert_equal 2, hash[:b]
     assert_equal 4, hash[:c]
