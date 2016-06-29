@@ -5,18 +5,18 @@ class CastedHash < Hash
     raise ArgumentError, "`cast_proc` required" unless cast_proc
 
     @cast_proc = cast_proc
-    @casting_keys = []
+    @casting_keys = Set.new
 
     if constructor.is_a?(CastedHash)
       @casted_keys = constructor.instance_variable_get(:@casted_keys).dup
       super()
       update(constructor)
     elsif constructor.is_a?(Hash)
-      @casted_keys = []
+      @casted_keys = Set.new
       super()
       update(constructor)
     else
-      @casted_keys = []
+      @casted_keys = Set.new
       super(constructor)
     end
   end

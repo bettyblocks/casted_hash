@@ -32,6 +32,28 @@ describe CastedHash do
     assert_equal "3", hash[:bar]
   end
 
+  it "does not mark key multiple times as casted" do
+    hash = CastedHash.new({:a => 1, :b => 2}, lambda {|x| x + 10 })
+    assert_equal [], hash.instance_variable_get(:@casted_keys).to_a
+    assert_equal 11, hash[:a]
+    assert_equal ["a"], hash.instance_variable_get(:@casted_keys).to_a
+    hash.casted! :a
+    hash.casted! :b
+    hash.casted! :b
+    hash.casted! :c
+    assert_equal ["a", "b"], hash.instance_variable_get(:@casted_keys).to_a
+  end
+
+  it "does not mark key multiple times as casting" do
+    hash = CastedHash.new({:a => 1, :b => 2}, lambda {|x| x + 10 })
+    assert_equal [], hash.instance_variable_get(:@casting_keys).to_a
+    hash.casting! :a
+    hash.casting! :b
+    hash.casting! :b
+    hash.casting! :c
+    assert_equal ["a", "b"], hash.instance_variable_get(:@casting_keys).to_a
+  end
+
   it "does not loop when refering to itself" do
     @hash = CastedHash.new({:a => 1}, lambda {|x| @hash[:a] + 1 })
     error = assert_raises(SystemStackError) do
